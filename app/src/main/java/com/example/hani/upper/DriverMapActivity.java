@@ -23,7 +23,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -180,6 +182,16 @@ public class DriverMapActivity extends FragmentActivity
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickupLocation();
                 }
+                // to notic that request is canceled and he is avaliable now
+                else{
+                    customerId="";
+                    if (pickupMarker != null){
+                        pickupMarker.remove();
+                    }
+                    if (assignedCustomerPickupRefListener != null) {
+                        assignedCustomerPickupRef.removeEventListener(assignedCustomerPickupRefListener);
+                    }
+                }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -190,14 +202,18 @@ public class DriverMapActivity extends FragmentActivity
 
 
     // get Assigned Customer Location
+    private DatabaseReference assignedCustomerPickupRef ;
+    private ValueEventListener assignedCustomerPickupRefListener ;
+    private Marker pickupMarker ;
    private void getAssignedCustomerPickupLocation(){
-       DatabaseReference assignedCustomerPickupRef=FirebaseDatabase.getInstance()
+       Toast.makeText(this,customerId+ "", Toast.LENGTH_SHORT).show();
+        assignedCustomerPickupRef=FirebaseDatabase.getInstance()
                .getReference().child("CustomerRequests").child(customerId).child("l");
 
-       assignedCustomerPickupRef.addValueEventListener(new ValueEventListener() {
+       assignedCustomerPickupRefListener = assignedCustomerPickupRef.addValueEventListener(new ValueEventListener() {
            @Override
            public void onDataChange(DataSnapshot dataSnapshot) {
-               if (dataSnapshot.exists()){
+               if (dataSnapshot.exists() && !customerId.equals("")){
                    double locationLat=0;
                    double locationLon=0;
                    List<Object> map= (List<Object>) dataSnapshot.getValue();
@@ -210,7 +226,8 @@ public class DriverMapActivity extends FragmentActivity
                    LatLng latLng=new LatLng(locationLat,locationLon);
 
                    // add marker to customer pickup
-                   mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location"));
+                   pickupMarker = mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location")
+                           .icon(BitmapDescriptorFactory.fromResource(R.mipmap.pickup_marker)));
                }
            }
 

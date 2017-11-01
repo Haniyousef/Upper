@@ -20,9 +20,15 @@
         android:id="@+id/logout_btn"
         android:text="logout"/>
     <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/settings_btn"
+        android:layout_gravity="right"
+        android:text="Settings"/>
+    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/request_btn"
-        android:text="Call Driver"
+        android:text="Call Uber"
         android:layout_gravity="bottom"/>
 </FrameLayout>
