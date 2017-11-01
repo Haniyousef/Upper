@@ -7,6 +7,13 @@
     android:orientation="vertical"
     tools:context="com.example.hani.upper.CustomerSettingsActivity">
 
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:id="@+id/image_profile"
+        android:src="@mipmap/profile"
+        android:layout_marginBottom="24dp"/>
+
     <EditText
         android:id="@+id/name_edit"
         android:layout_width="match_parent"
