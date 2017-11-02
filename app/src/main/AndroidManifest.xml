@@ -46,7 +46,8 @@
         <activity
             android:name=".CustomerMapActivity"
             android:label="@string/title_activity_customer_map" />
-        <activity android:name=".CustomerSettingsActivity"></activity>
+        <activity android:name=".CustomerSettingsActivity" />
+        <activity android:name=".DriverSettingsActivity"></activity>
     </application>
 
 </manifest>

@@ -49,7 +49,7 @@ public class DriverMapActivity extends FragmentActivity
     GoogleApiClient mGoogleApiClient;
     Location lastLocation;
     LocationRequest mLocationRequest;
-    Button logout ;
+    Button logout , settings_btn ;
     String customerId="";
     Boolean isLogingout = false;
 
@@ -78,6 +78,14 @@ public class DriverMapActivity extends FragmentActivity
         customerName=(TextView) findViewById(R.id.customerName);
         customerPhone=(TextView)findViewById(R.id.customerPhone);
         customerDestination=(TextView)findViewById(R.id.customerDestination);
+
+        settings_btn=(Button)findViewById(R.id.settings_btn);
+        settings_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(DriverMapActivity.this,DriverSettingsActivity.class));
+            }
+        });
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override

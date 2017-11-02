@@ -25,6 +25,10 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     // for save updated location to database
+    /*compile 'com.google.android.gms:play-services-maps:11.0.4'
+    compile 'com.google.android.gms:play-services-location:11.0.4'
+    compile 'com.google.android.gms:play-services-places:11.0.4'   // for places autocomlete*/
+    // to display image
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.google.firebase:firebase-core:11.0.4'
@@ -32,10 +36,7 @@ dependencies {
     compile 'com.google.firebase:firebase-storage:11.0.4'
     compile 'com.google.firebase:firebase-database:11.0.4'
     compile 'com.google.android.gms:play-services:11.0.4'
-    /*compile 'com.google.android.gms:play-services-maps:11.0.4'
-    compile 'com.google.android.gms:play-services-location:11.0.4'
-    compile 'com.google.android.gms:play-services-places:11.0.4'   // for places autocomlete*/
-    compile 'com.github.bumptech.glide:glide:4.0.0'      // to display image
+    compile 'com.github.bumptech.glide:glide:4.0.0'
     compile 'com.firebase:geofire-android:2.1.2'
     compile 'com.android.support:cardview-v7:26.+'
     testCompile 'junit:junit:4.12'
