@@ -56,15 +56,21 @@ public class DriverMapActivity extends FragmentActivity
     LinearLayout customerInfo ;
     ImageView customerProfile ;
     TextView customerName , customerPhone , customerDestination;
+    SupportMapFragment mapFragment ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_map);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(DriverMapActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_REQUEST_CODE);
+        }else {
+            mapFragment.getMapAsync(this);
+        }
 
         logout=(Button)findViewById(R.id.logout_btn);
         customerInfo=(LinearLayout) findViewById(R.id.customerInfo);
@@ -160,8 +166,7 @@ public class DriverMapActivity extends FragmentActivity
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-           // check permission
-            return;
+            ActivityCompat.requestPermissions(DriverMapActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_REQUEST_CODE);
         }
         // update the location i called every 1 second (1000)
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest,  this);
@@ -182,7 +187,25 @@ public class DriverMapActivity extends FragmentActivity
 
     }
 
+    // check the premissions of map
 
+    final int LOCATION_REQUEST_CODE=1;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case LOCATION_REQUEST_CODE :
+            {
+                if (grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                    mapFragment.getMapAsync(this);
+                }else {
+                    Toast.makeText(this, "please provide the permissions", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+        }
+
+    }
 
     // get requests customers id
     private void getAssignedCustomer(){
