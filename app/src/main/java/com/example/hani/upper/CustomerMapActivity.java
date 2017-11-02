@@ -18,10 +18,13 @@ import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -56,6 +59,7 @@ public class CustomerMapActivity extends FragmentActivity
     Boolean isLogingout = false;
     private GeoQuery geoQuery ;
     private Marker pickupMarker ;
+    private String  destination ;
 
 
     @Override
@@ -78,17 +82,25 @@ public class CustomerMapActivity extends FragmentActivity
             }
         });
 
-       /* logout_btn.setOnClickListener(new View.OnClickListener() {
+       // places autocomplete
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onClick(View view) {
-                isLogingout=true;
-                disconnectCustomer();
-                FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(CustomerMapActivity.this,MainActivity.class));
-                finish();
-                return;
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                  destination=place.getName().toString();
             }
-        });*/
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+
+            }
+        });
+
+
 
         request_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,10 +185,12 @@ public class CustomerMapActivity extends FragmentActivity
                    driverFoundedId=key;
 
                    // Notic the driver of pickup request
-                   DatabaseReference mRef=FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundedId);
+                   DatabaseReference mRef=FirebaseDatabase.getInstance().getReference().child("Users")
+                           .child("Drivers").child(driverFoundedId).child("customerRequest");
                    String customerId=FirebaseAuth.getInstance().getCurrentUser().getUid();
                    HashMap map=new HashMap();
                    map.put("CustomerRideId",customerId);
+                   map.put("destination",destination);
                    mRef.updateChildren(map);
 
                    // show driver location of customer map

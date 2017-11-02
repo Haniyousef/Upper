@@ -55,7 +55,7 @@ public class DriverMapActivity extends FragmentActivity
 
     LinearLayout customerInfo ;
     ImageView customerProfile ;
-    TextView customerName , customerPhone ;
+    TextView customerName , customerPhone , customerDestination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +71,7 @@ public class DriverMapActivity extends FragmentActivity
         customerProfile=(ImageView) findViewById(R.id.customerProfile);
         customerName=(TextView) findViewById(R.id.customerName);
         customerPhone=(TextView)findViewById(R.id.customerPhone);
+        customerDestination=(TextView)findViewById(R.id.customerDestination);
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,13 +188,14 @@ public class DriverMapActivity extends FragmentActivity
     private void getAssignedCustomer(){
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance()
-                .getReference().child("Users").child("Drivers").child(driverId).child("CustomerRideId");
+                .getReference().child("Users").child("Drivers").child(driverId).child("customerRequest").child("CustomerRideId");
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickupLocation();
+                    getAssignedCustomerDestination();
                     getAssignedCustomerInfo();
                 }
                 // to notic that request is canceled and he is avaliable now
@@ -225,19 +227,40 @@ public class DriverMapActivity extends FragmentActivity
                     Map<String,Object> map = (Map<String,Object>) dataSnapshot.getValue();
                     if (map.get("name")!= null){
                         customerName.setText(map.get("name").toString());
-                        Toast.makeText(DriverMapActivity.this,map.get("name").toString()+"", Toast.LENGTH_SHORT).show();
                     }
                     if (map.get("phone") != null){
                         customerPhone.setText(map.get("phone").toString());
-                        Toast.makeText(DriverMapActivity.this,map.get("phone").toString()+"", Toast.LENGTH_SHORT).show();
-                    }
+                }
                     if (map.get("imageProfile") != null){
                         Glide.with(DriverMapActivity.this).load(map.get("imageProfile").toString()).into(customerProfile);
-                        Toast.makeText(DriverMapActivity.this,map.get("imageProfile").toString()+"", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getAssignedCustomerDestination(){
+        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance()
+                .getReference().child("Users").child("Drivers").child(driverId).child("customerRequest").child("destination");
+        assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    String destination = dataSnapshot.getValue().toString();
+                    customerDestination.setText("Destination : "+destination);
+
+                }
+                // to notic that request is canceled and he is avaliable now
+                else{
+                    customerDestination.setText("Destination : --");
+                }
+            }
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -252,7 +275,7 @@ public class DriverMapActivity extends FragmentActivity
     private void getAssignedCustomerPickupLocation(){
        Toast.makeText(this,customerId+ "", Toast.LENGTH_SHORT).show();
         assignedCustomerPickupRef=FirebaseDatabase.getInstance()
-               .getReference().child("CustomerRequests").child(customerId).child("l");
+               .getReference().child("CustomerRequestsCustomerRequests").child(customerId).child("l");
 
        assignedCustomerPickupRefListener = assignedCustomerPickupRef.addValueEventListener(new ValueEventListener() {
            @Override
