@@ -53,6 +53,7 @@ public class CustomerMapActivity extends FragmentActivity
     private boolean driverFounded=false ;
     private String driverFoundedId;
     private boolean requestBool =false;
+    Boolean isLogingout = false;
     private GeoQuery geoQuery ;
     private Marker pickupMarker ;
 
@@ -76,6 +77,18 @@ public class CustomerMapActivity extends FragmentActivity
                  startActivity(new Intent(CustomerMapActivity.this,CustomerSettingsActivity.class));
             }
         });
+
+       /* logout_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                isLogingout=true;
+                disconnectCustomer();
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(CustomerMapActivity.this,MainActivity.class));
+                finish();
+                return;
+            }
+        });*/
 
         request_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,6 +145,14 @@ public class CustomerMapActivity extends FragmentActivity
             }
         });
     }
+
+    /*private void disconnectCustomer(){
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+        String userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference reference= FirebaseDatabase.getInstance().getReference("DriversAvaliable");
+        GeoFire geoFire=new GeoFire(reference);
+        geoFire.removeLocation(userId);    // remove data base of current driver
+    }*/
 
     private void getClossestDriver(){
         DatabaseReference reference=FirebaseDatabase.getInstance().getReference().child("DriversAvaliable");

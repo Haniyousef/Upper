@@ -11,8 +11,12 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -49,6 +53,10 @@ public class DriverMapActivity extends FragmentActivity
     String customerId="";
     Boolean isLogingout = false;
 
+    LinearLayout customerInfo ;
+    ImageView customerProfile ;
+    TextView customerName , customerPhone ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +67,11 @@ public class DriverMapActivity extends FragmentActivity
         mapFragment.getMapAsync(this);
 
         logout=(Button)findViewById(R.id.logout_btn);
+        customerInfo=(LinearLayout) findViewById(R.id.customerInfo);
+        customerProfile=(ImageView) findViewById(R.id.customerProfile);
+        customerName=(TextView) findViewById(R.id.customerName);
+        customerPhone=(TextView)findViewById(R.id.customerPhone);
+
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -181,9 +194,11 @@ public class DriverMapActivity extends FragmentActivity
                 if(dataSnapshot.exists()){
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickupLocation();
+                    getAssignedCustomerInfo();
                 }
                 // to notic that request is canceled and he is avaliable now
                 else{
+                    customerInfo.setVisibility(View.GONE);
                     customerId="";
                     if (pickupMarker != null){
                         pickupMarker.remove();
@@ -200,12 +215,41 @@ public class DriverMapActivity extends FragmentActivity
         });
     }
 
+    private void getAssignedCustomerInfo(){
+       DatabaseReference mRef= FirebaseDatabase.getInstance().getReference().child("Users").child("Customer").child(customerId);
+        mRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0) {
+                    customerInfo.setVisibility(View.VISIBLE);
+                    Map<String,Object> map = (Map<String,Object>) dataSnapshot.getValue();
+                    if (map.get("name")!= null){
+                        customerName.setText(map.get("name").toString());
+                        Toast.makeText(DriverMapActivity.this,map.get("name").toString()+"", Toast.LENGTH_SHORT).show();
+                    }
+                    if (map.get("phone") != null){
+                        customerPhone.setText(map.get("phone").toString());
+                        Toast.makeText(DriverMapActivity.this,map.get("phone").toString()+"", Toast.LENGTH_SHORT).show();
+                    }
+                    if (map.get("imageProfile") != null){
+                        Glide.with(DriverMapActivity.this).load(map.get("imageProfile").toString()).into(customerProfile);
+                        Toast.makeText(DriverMapActivity.this,map.get("imageProfile").toString()+"", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     // get Assigned Customer Location
     private DatabaseReference assignedCustomerPickupRef ;
     private ValueEventListener assignedCustomerPickupRefListener ;
     private Marker pickupMarker ;
-   private void getAssignedCustomerPickupLocation(){
+    private void getAssignedCustomerPickupLocation(){
        Toast.makeText(this,customerId+ "", Toast.LENGTH_SHORT).show();
         assignedCustomerPickupRef=FirebaseDatabase.getInstance()
                .getReference().child("CustomerRequests").child(customerId).child("l");

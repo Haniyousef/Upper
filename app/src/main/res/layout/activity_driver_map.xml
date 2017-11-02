@@ -19,4 +19,45 @@
         android:layout_height="wrap_content"
         android:id="@+id/logout_btn"
         android:text="logout"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:id="@+id/customerInfo"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:background="@android:color/white"
+        android:visibility="gone"
+        >
+        <ImageView
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:id="@+id/customerProfile"
+            android:layout_marginLeft="16dp"
+            android:layout_gravity="left"
+            android:src="@mipmap/profile"/>
+       <LinearLayout
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:layout_gravity="center_vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/customerName"
+            android:layout_marginLeft="24dp"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="left"
+            android:text="Name"/>
+           <TextView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:id="@+id/customerPhone"
+               android:layout_marginLeft="24dp"
+               android:layout_marginTop="8dp"
+               android:layout_gravity="left"
+               android:text="Phone"/>
+
+       </LinearLayout>
+    </LinearLayout>
 </FrameLayout>
