@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/settings_btn"
-        android:text="logout"
+        android:text="Settings"
         android:background="#e1e1e1"
         android:layout_gravity="right"
         android:layout_marginRight="4dp"

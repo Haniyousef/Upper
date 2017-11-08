@@ -219,9 +219,9 @@ public class CustomerMapActivity extends FragmentActivity
                            if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
                                Map<String,Object> driverMap= (Map<String, Object>) dataSnapshot.getValue();
 
-                               if (driverFounded){
-                                   return;
-                               }
+                         //      if (driverFounded){
+                           //        return;
+                             //  }
 
                                if (driverMap.get("service").equals(requestService)){
                                    driverFounded=true;

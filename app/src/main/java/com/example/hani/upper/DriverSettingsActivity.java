@@ -146,6 +146,7 @@ public class DriverSettingsActivity extends AppCompatActivity {
 
         name = nameFeild.getText().toString();
         phone=phoneFeild.getText().toString();
+        car=carFeild.getText().toString();
         service=radioButton.getText().toString();
         Map info=new HashMap();
         info.put("name",name);
