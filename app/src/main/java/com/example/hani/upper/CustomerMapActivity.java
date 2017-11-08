@@ -76,6 +76,8 @@ public class CustomerMapActivity extends FragmentActivity
     RadioGroup radioGroup ;
     RadioButton radioServiece ;
 
+    private LatLng destinationLatLon ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +92,7 @@ public class CustomerMapActivity extends FragmentActivity
             mapFragment.getMapAsync(this);
         }
 
+        destinationLatLon=new LatLng(0.0 , 0.0);  // default destinationLatLon if customer do not choose distination
         logout_btn=findViewById(R.id.logout_btn);
         settings_btn=findViewById(R.id.settings_btn);
         request_btn=findViewById(R.id.request_btn);
@@ -109,6 +112,8 @@ public class CustomerMapActivity extends FragmentActivity
         });
 
        // places autocomplete
+        // donot forget to get new key and update the old one with it and enable api in
+        /*  https://developers.google.com/places/android-api/autocomplete*/
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
@@ -117,10 +122,12 @@ public class CustomerMapActivity extends FragmentActivity
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                   destination=place.getName().toString();
+                  destinationLatLon=place.getLatLng();
             }
 
             @Override
             public void onError(Status status) {
+                Toast.makeText(CustomerMapActivity.this, status+"", Toast.LENGTH_SHORT).show();
                 // TODO: Handle the error.
 
             }
@@ -133,41 +140,7 @@ public class CustomerMapActivity extends FragmentActivity
             public void onClick(View view) {
 
                 if (requestBool){
-                                                 /* CANCEL REQUEST */
-
-                    requestBool=false ;
-                    geoQuery.removeAllListeners();
-
-                    // delete driver i cancel his request from DriversWorking parent on database
-                    driverLocationRef.removeEventListener(driverLocationRefListener);
-
-                    // remove children of driver id in Drivers and back vaalue to true
-                    if (driverFoundedId != null){
-                        DatabaseReference mRef=FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundedId).child("customerRequest");
-                        mRef.removeValue();
-                        driverFoundedId=null ;
-                    }
-                    driverFounded=false ;
-                    radius=1;
-
-                    // remove request from CustomerRequests
-                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference("CustomerRequests");
-                    GeoFire geoFire = new GeoFire(reference);
-                    geoFire.removeLocation(userId);
-
-                    // remove pickup marker from map
-                    if (pickupMarker != null){
-                        pickupMarker.remove();
-                    }
-
-                    driverInfo.setVisibility(View.GONE);
-                    driverName.setText("");
-                    driverPhone.setText("");
-                    driverCar.setText("");
-                    driverProfile.setImageResource(R.mipmap.profile);
-
-                    request_btn.setText("Call Uber");
+                    endRide();    // cancel request
 
                 }else {
                     // for make requests
@@ -234,13 +207,15 @@ public class CustomerMapActivity extends FragmentActivity
                                    HashMap map=new HashMap();
                                    map.put("CustomerRideId",customerId);
                                    map.put("destination",destination);
+                                   map.put("destinationLat",destinationLatLon.latitude);
+                                   map.put("destinationLon",destinationLatLon.longitude);
                                    mRef.updateChildren(map);
 
                                    // show driver location of customer map
                                    getDriverLocation();
 
                                    getDriverInfo();
-
+                                   getHasRideEnded();
                                    request_btn.setText("Looking for Driver Location......");
                                }
                            }
@@ -389,6 +364,73 @@ public class CustomerMapActivity extends FragmentActivity
             }
         });
     }
+
+
+    // make driver cancel the ride
+    DatabaseReference getHasRideEndedRef ;
+    private ValueEventListener getHasRideEndedRefListener ;
+    private void getHasRideEnded(){
+        getHasRideEndedRef = FirebaseDatabase.getInstance()
+                .getReference().child("Users").child("Drivers").child(driverFoundedId).child("customerRequest").child("CustomerRideId");
+        getHasRideEndedRefListener= getHasRideEndedRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+
+                }
+
+                else{
+                      endRide();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void endRide() {
+
+                                                 /* CANCEL REQUEST */
+
+        requestBool=false ;
+        geoQuery.removeAllListeners();
+
+        // delete driver i cancel his request from DriversWorking parent on database
+        driverLocationRef.removeEventListener(driverLocationRefListener);
+
+        getHasRideEndedRef.removeEventListener(getHasRideEndedRefListener);
+
+        // remove children of driver id in Drivers and back vaalue to true
+        if (driverFoundedId != null){
+            DatabaseReference mRef=FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundedId).child("customerRequest");
+            mRef.removeValue();
+            driverFoundedId=null ;
+        }
+        driverFounded=false ;
+        radius=1;
+
+        // remove request from CustomerRequests
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("CustomerRequests");
+        GeoFire geoFire = new GeoFire(reference);
+        geoFire.removeLocation(userId);
+
+        // remove pickup marker from map
+        if (pickupMarker != null){
+            pickupMarker.remove();
+        }
+
+        driverInfo.setVisibility(View.GONE);
+        driverName.setText("");
+        driverPhone.setText("");
+        driverCar.setText("");
+        driverProfile.setImageResource(R.mipmap.profile);
+
+        request_btn.setText("Call Uber");
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.

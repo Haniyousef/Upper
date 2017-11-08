@@ -58,7 +58,7 @@ public class DriverMapActivity extends FragmentActivity
     GoogleApiClient mGoogleApiClient;
     Location lastLocation;
     LocationRequest mLocationRequest;
-    Button logout , settings_btn ;
+    Button logout , settings_btn , rideStatus ;
     String customerId="";
     Boolean isLogingout = false;
 
@@ -70,6 +70,10 @@ public class DriverMapActivity extends FragmentActivity
     // for draw rout (line) between to points
     private List<Polyline> polylines;
     private static final int[] COLORS = new int[]{R.color.primary_dark_material_light};
+
+    private int status=0 ;
+    private String destination ;
+    private LatLng destinationLatLon;
 
 
     @Override
@@ -87,13 +91,31 @@ public class DriverMapActivity extends FragmentActivity
         }
 
         logout=(Button)findViewById(R.id.logout_btn);
+        rideStatus=(Button)findViewById(R.id.rideStatus);
+        settings_btn=(Button)findViewById(R.id.settings_btn);
         customerInfo=(LinearLayout) findViewById(R.id.customerInfo);
         customerProfile=(ImageView) findViewById(R.id.customerProfile);
         customerName=(TextView) findViewById(R.id.customerName);
         customerPhone=(TextView)findViewById(R.id.customerPhone);
         customerDestination=(TextView)findViewById(R.id.customerDestination);
 
-        settings_btn=(Button)findViewById(R.id.settings_btn);
+        rideStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switch (status){
+                    case 1 :
+                        status=2;
+                        if (destinationLatLon.latitude !=0.0  &&  destinationLatLon.longitude !=0.0){
+                            getRoutToMarker(destinationLatLon);
+                        }
+                        rideStatus.setText("drive completed");
+                        break;
+                    case 2 :
+                        endRide();
+                        break;
+                }
+            }
+        });
         settings_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -239,6 +261,7 @@ public class DriverMapActivity extends FragmentActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
+                    status=1;
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickupLocation();
                     getAssignedCustomerDestination();
@@ -246,15 +269,7 @@ public class DriverMapActivity extends FragmentActivity
                 }
                 // to notic that request is canceled and he is avaliable now
                 else{
-                    customerInfo.setVisibility(View.GONE);
-                    erasePolyLines();
-                    customerId="";
-                    if (pickupMarker != null){
-                        pickupMarker.remove();
-                    }
-                    if (assignedCustomerPickupRefListener != null) {
-                        assignedCustomerPickupRef.removeEventListener(assignedCustomerPickupRefListener);
-                    }
+                   endRide();
                 }
             }
             @Override
@@ -294,19 +309,34 @@ public class DriverMapActivity extends FragmentActivity
     private void getAssignedCustomerDestination(){
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance()
-                .getReference().child("Users").child("Drivers").child(driverId).child("customerRequest").child("destination");
+                .getReference().child("Users").child("Drivers").child(driverId).child("customerRequest");
         assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    String destination = dataSnapshot.getValue().toString();
-                    customerDestination.setText("Destination : "+destination);
+
+                    Map<String,Object> map= (Map<String, Object>) dataSnapshot.getValue();
+                    if (map.get("destination")!=null){
+                        String destination = map.get("destination").toString();
+                        customerDestination.setText("Destination : "+destination);
+                    } else{
+                        customerDestination.setText("Destination : --");
+                    }
+
+                    Double destinationLat=0.0 ;
+                    Double destinationLon=0.0 ;
+                    if (map.get("destinationLat") != null){
+                        destinationLat=Double.valueOf(map.get("destinationLat").toString());
+                    }
+                    if (map.get("destinationLon") != null){
+                        destinationLon=Double.valueOf(map.get("destinationLon").toString());
+                        destinationLatLon=new LatLng(destinationLat,destinationLon);
+                    }
+
 
                 }
                 // to notic that request is canceled and he is avaliable now
-                else{
-                    customerDestination.setText("Destination : --");
-                }
+
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -354,7 +384,37 @@ public class DriverMapActivity extends FragmentActivity
    }
 
 
+    private void endRide() {
+        rideStatus.setText("picked customer");
+        erasePolyLines();
+        // remove children of driver id in Drivers and back vaalue to true
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            DatabaseReference driverRef=FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(userId).child("customerRequest");
+            driverRef.removeValue();
 
+
+        // remove request from CustomerRequests
+
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("CustomerRequests");
+        GeoFire geoFire = new GeoFire(reference);
+        geoFire.removeLocation(customerId);
+        customerId="";
+
+        // remove pickup marker from map
+        if (pickupMarker != null){
+            pickupMarker.remove();
+        }
+        customerInfo.setVisibility(View.GONE);
+        erasePolyLines();
+        customerId="";
+        if (pickupMarker != null){
+            pickupMarker.remove();
+        }
+        if (assignedCustomerPickupRefListener != null) {
+            assignedCustomerPickupRef.removeEventListener(assignedCustomerPickupRefListener);
+        }
+
+    }
 
     private void disconnectDriver(){
        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
